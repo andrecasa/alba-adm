@@ -44,9 +44,7 @@ function formatCurrency(value) {
 }
 
 function openNew() {
-    user.value = {
-        user_active: 1
-    };
+    user.value = { user_active: true };
     submitted.value = false;
     userDialog.value = true;
 }
@@ -59,7 +57,6 @@ function hideDialog() {
 function saveUser() {
     submitted.value = true;
 
-    // Validate required fields
     if (
         !user.value.user_name?.trim() ||
         !user.value.user_email?.trim() ||
@@ -106,7 +103,6 @@ function saveUser() {
 function editUser(usr) {
     user.value = { ...usr };
     userDialog.value = true;
-    console.log(usr)
 }
 
 function confirmDeleteUser(usr) {
@@ -209,6 +205,13 @@ function deleteSelectedUsers() {
                 <Column field="user_id" header="Id" sortable style="min-width: 6rem"></Column>
                 <Column field="user_name" header="Nome" sortable style="min-width: 12rem"></Column>
                 <Column field="user_email" header="Name" sortable style="min-width: 16rem"></Column>
+                <Column field="user_active" header="Active" sortable style="min-width: 6rem">
+                    <template #body="slotProps">
+                        <i v-if="slotProps.data.user_active === true" class="pi pi-check-circle text-green-600 ml-2" style="font-size: 1.2rem"></i>
+                        <i v-if="slotProps.data.user_active === false" class="pi pi-times-circle text-red-600 ml-2" style="font-size: 1.2rem"></i>
+                    </template>
+                </Column>
+                
                 <Column :exportable="false" style="min-width: 12rem; text-align: right;">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
@@ -247,12 +250,12 @@ function deleteSelectedUsers() {
 
                 <div>
                     <label for="user_active" class="block font-bold mb-3">Active</label>
-                    <InputSwitch
+                    <Checkbox
                         id="user_active"
                         v-model="user.user_active"
-                        :true-value="1"
-                        :false-value="0"
-                        :invalid="submitted"
+                        :binary="true"
+                        :true-value="true"
+                        :false-value="false"
                     />
                 </div>
 
