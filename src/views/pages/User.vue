@@ -16,6 +16,7 @@ const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
 const submitted = ref(false);
+const showPassword = ref(false);
 
 // Helper to get token from cookie
 function getTokenFromCookie() {
@@ -37,11 +38,6 @@ onMounted(async () => {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch users', life: 3000 });
     }
 });
-
-function formatCurrency(value) {
-    if (value) return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    return;
-}
 
 function openNew() {
     user.value = { user_active: true };
@@ -185,6 +181,7 @@ function deleteSelectedUsers() {
                 :paginator="true"
                 :rows="10"
                 :filters="filters"
+                stripedRows
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} Users"
@@ -201,18 +198,18 @@ function deleteSelectedUsers() {
                     </div>
                 </template>
 
-                <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="user_id" header="Id" sortable style="min-width: 6rem"></Column>
-                <Column field="user_name" header="Nome" sortable style="min-width: 12rem"></Column>
-                <Column field="user_email" header="Name" sortable style="min-width: 16rem"></Column>
-                <Column field="user_active" header="Active" sortable style="min-width: 6rem">
+                <Column selectionMode="multiple":exportable="false"></Column>
+                <Column field="user_id" header="Id" sortable></Column>
+                <Column field="user_name" header="Nome" sortable></Column>
+                <Column field="user_email" header="Name" sortable></Column>
+                <Column field="user_active" header="Active" sortable>
                     <template #body="slotProps">
-                        <i v-if="slotProps.data.user_active === true" class="pi pi-check-circle text-green-600 ml-2" style="font-size: 1.2rem"></i>
-                        <i v-if="slotProps.data.user_active === false" class="pi pi-times-circle text-red-600 ml-2" style="font-size: 1.2rem"></i>
+                        <i v-if="slotProps.data.user_active === true" class="pi pi-check-circle text-green-600 ml-2"></i>
+                        <i v-if="slotProps.data.user_active === false" class="pi pi-times-circle text-red-600 ml-2"></i>
                     </template>
                 </Column>
                 
-                <Column :exportable="false" style="min-width: 12rem; text-align: right;">
+                <Column :exportable="false" style="text-align: right;">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteUser(slotProps.data)" />
@@ -244,7 +241,25 @@ function deleteSelectedUsers() {
 
                 <div v-if="!user.user_id">
                     <label for="user_password" class="block font-bold mb-3">Password</label>
-                    <InputText id="user_password" v-model="user.user_password" type="password" required="true" rows="3" cols="20" fluid />
+                    <div class="flex items-center gap-2">
+                        <InputText
+                            id="user_password"
+                            v-model="user.user_password"
+                            :type="showPassword ? 'text' : 'password'"
+                            required="true"
+                            rows="3"
+                            cols="20"
+                            fluid
+                        />
+                        <Button
+                            :icon="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                            @click="showPassword = !showPassword"
+                            type="button"
+                            text
+                            class="p-0"
+                            :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                        />
+                    </div>
                     <small v-if="submitted && !user.user_password" class="text-red-500">Password is required.</small>
                 </div>
 

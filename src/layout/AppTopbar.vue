@@ -1,8 +1,50 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
+import OverlayPanel from 'primevue/overlaypanel';
+import { onMounted, ref } from 'vue';
 import AppConfigurator from './AppConfigurator.vue';
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
+
+const op = ref(null);
+const userProfile = ref({
+    user_name: '',
+    user_email: ''
+});
+
+// Função para decodificar JWT (simples, sem verificação de assinatura)
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return {};
+    }
+}
+
+onMounted(() => {
+    // Supondo que o JWT está em um cookie chamado 'token'
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    const token = getCookie('token');
+    if (token) {
+        const payload = parseJwt(token);
+        userProfile.value.user_name = payload.user_name || payload.name || 'Usuário';
+        userProfile.value.user_email = payload.user_email || payload.email || '';
+    }
+});
 </script>
 
 <template>
@@ -12,7 +54,7 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
                 <i class="pi pi-bars"></i>
             </button>
             <router-link to="/" class="layout-topbar-logo">
-                <svg viewBox="0 0 54 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- <svg viewBox="0 0 54 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         fill-rule="evenodd"
                         clip-rule="evenodd"
@@ -28,9 +70,9 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
                             fill="var(--primary-color)"
                         />
                     </g>
-                </svg>
+                </svg> -->
 
-                <span>SAKAI</span>
+                <span>ALBA</span>
             </router-link>
         </div>
 
@@ -68,12 +110,27 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
                         <i class="pi pi-inbox"></i>
                         <span>Messages</span>
                     </button>
-                    <button type="button" class="layout-topbar-action">
+                    <button
+                        type="button"
+                        class="layout-topbar-action"
+                        @click="op.toggle($event)"
+                    >
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </button>
                 </div>
             </div>
         </div>
+        <OverlayPanel ref="op">
+            <div class="flex flex-col items-center gap-2 p-2 min-w-[200px]">
+                <img
+                    :src="userProfile.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userProfile.user_name)"
+                    alt="Avatar"
+                    class="w-16 h-16 rounded-full border border-gray-300 mb-2"
+                />
+                <div><strong>{{ userProfile.user_name }}</strong></div>
+                <div>{{ userProfile.user_email }}</div>
+            </div>
+        </OverlayPanel>
     </div>
 </template>
