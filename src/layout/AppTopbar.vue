@@ -1,18 +1,23 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
+import axios from 'axios';
+import Button from 'primevue/button';
 import OverlayPanel from 'primevue/overlaypanel';
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import AppConfigurator from './AppConfigurator.vue';
+const router = useRouter();
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 
 const op = ref(null);
 const userProfile = ref({
+    user_id: '',
     user_name: '',
-    user_email: ''
+    user_email: '',
+    user_image: '',
 });
 
-// Função para decodificar JWT (simples, sem verificação de assinatura)
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -29,22 +34,61 @@ function parseJwt(token) {
     }
 }
 
-onMounted(() => {
-    // Supondo que o JWT está em um cookie chamado 'token'
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return null;
-    }
+// Helper to get token from cookie
+function getTokenFromCookie() {
+    const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
+    return match ? match[2] : null;
+}
+const token = getTokenFromCookie();
 
-    const token = getCookie('token');
+onMounted(() => {
     if (token) {
         const payload = parseJwt(token);
-        userProfile.value.user_name = payload.user_name || payload.name || 'Usuário';
-        userProfile.value.user_email = payload.user_email || payload.email || '';
+        userProfile.value.user_id = payload.user_id || 'id';
+        userProfile.value.user_name = payload.user_name ||  'Usuário';
+        userProfile.value.user_email = payload.user_email || '';
+        userProfile.value.user_image = payload.user_image || '';
     }
 });
+
+function onAvatarChange(event) {
+
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Atualiza preview local
+    const reader = new FileReader();
+    reader.onload = e => {
+        userProfile.value.avatar = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    // Envia para o backend
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    axios.post(`http://localhost:3000/avatar/${userProfile.value.user_id}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            // Adicione autenticação se necessário, ex: Authorization: Bearer <token>
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        // Atualize o avatar do usuário conforme resposta do backend, se necessário
+        // userProfile.value.avatar = response.data.avatarUrl;
+    })
+    .catch(error => {
+        // Trate erros de upload
+        console.error('Erro ao enviar avatar:', error);
+    });
+}
+
+function logout() {
+    document.cookie = 'token=; Max-Age=0; path=/;';
+    router.push('/auth/login');
+}
+
 </script>
 
 <template>
@@ -123,13 +167,33 @@ onMounted(() => {
         </div>
         <OverlayPanel ref="op">
             <div class="flex flex-col items-center gap-2 p-2 min-w-[200px]">
-                <img
-                    :src="userProfile.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userProfile.user_name)"
-                    alt="Avatar"
-                    class="w-16 h-16 rounded-full border border-gray-300 mb-2"
-                />
-                <div><strong>{{ userProfile.user_name }}</strong></div>
+                <label class="cursor-pointer flex flex-col items-center">
+                    <img
+                        :src="userProfile.avatar 
+                            || (userProfile.user_image 
+                                ? 'http://localhost:3000/' + userProfile.user_image.replace(/^\/+/, '') 
+                                : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userProfile.user_name)
+                            )"
+                        alt="Avatar"
+                        class="w-16 h-16 rounded-full border border-gray-300 mb-2"
+                    />
+                    <input
+                        type="file"
+                        accept="image/*"
+                        class="hidden"
+                        @change="onAvatarChange"
+                    />
+                    <span class="mt-1 text-xs">Trocar foto</span>
+                </label>
+                <div class="pt-6"><strong>{{ userProfile.user_name }}</strong></div>
                 <div>{{ userProfile.user_email }}</div>
+                <Button
+                    icon="pi pi-sign-out"
+                    label="Sair"
+                    class="mt-4 px-3 py-1 text-xs"
+                    outlined
+                    @click="logout"
+                />
             </div>
         </OverlayPanel>
     </div>

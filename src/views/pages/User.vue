@@ -289,7 +289,7 @@ function deleteSelectedUsers() {
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteUserDialog = false" />
-                <Button label="Yes" icon="pi pi-check" @click="deleteUser" />
+                <Button label="Yes" icon="pi pi-check" severity="danger" @click="deleteUser" />
             </template>
         </Dialog>
 
@@ -300,7 +300,7 @@ function deleteSelectedUsers() {
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteUsersDialog = false" />
-                <Button label="Yes" icon="pi pi-check" text @click="deleteSelectedUsers" />
+                <Button label="Yes" icon="pi pi-check" severity="danger" @click="deleteUser" />
             </template>
         </Dialog>
     </div>

@@ -6,18 +6,12 @@ import AppMenuItem from './AppMenuItem.vue';
 
 const router = useRouter();
 
-function handleLogoff() {
-    document.cookie = 'token=; Max-Age=0; path=/;';
-    router.push('/auth/login');
-}
-
 const model = ref([
     {
         label: 'Home',
         items: [
             { label: 'User', icon: 'pi pi-fw pi-user', to: '/' },
             { label: 'Dashboard', icon: 'pi pi-fw pi-chart-bar', to: '/dashboard' },
-            { label: 'Logoff', icon: 'pi pi-fw pi-sign-out', command: handleLogoff }
         ]
     },
     {
