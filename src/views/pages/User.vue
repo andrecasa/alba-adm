@@ -3,6 +3,7 @@ import { FilterMatchMode } from '@primevue/core/api';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const toast = useToast();
 const dt = ref();
@@ -27,7 +28,7 @@ function getTokenFromCookie() {
 onMounted(async () => {
     try {
         const token = getTokenFromCookie();
-        const res = await axios.get('http://localhost:3000/users/all/', {
+        const res = await axios.get(`${API_URL}/users/all/`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -65,7 +66,7 @@ function saveUser() {
     const token = getTokenFromCookie();
 
     if (user.value.user_id) {
-        axios.put(`http://localhost:3000/users/${user.value.user_id}`, user.value, {
+        axios.put(`${API_URL}/users/${user.value.user_id}`, user.value, {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then(res => {
@@ -80,7 +81,7 @@ function saveUser() {
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
         });
     } else {
-        axios.post('http://localhost:3000/users/', user.value, {
+        axios.post(`${API_URL}/users/`, user.value, {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then(res => {
@@ -108,7 +109,7 @@ function confirmDeleteUser(usr) {
 
 function deleteUser() {
     const token = getTokenFromCookie();
-    axios.delete(`http://localhost:3000/users/${user.value.user_id}`, {
+    axios.delete(`${API_URL}/users/${user.value.user_id}`, {
         headers: { Authorization: `Bearer ${token}` }
     })
     .then(() => {
@@ -140,7 +141,7 @@ function deleteSelectedUsers() {
     const idsToDelete = selectedUsers.value.map(u => u.user_id);
     Promise.all(
         idsToDelete.map(id =>
-            axios.delete(`http://localhost:3000/users/${id}`, {
+            axios.delete(`${API_URL}/users/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
         )

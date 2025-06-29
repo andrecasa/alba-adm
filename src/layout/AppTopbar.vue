@@ -6,6 +6,8 @@ import OverlayPanel from 'primevue/overlaypanel';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppConfigurator from './AppConfigurator.vue';
+const API_URL = import.meta.env.VITE_API_URL;
+
 const router = useRouter();
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
@@ -67,7 +69,7 @@ function onAvatarChange(event) {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    axios.post(`http://localhost:3000/users/avatar/${userProfile.value.user_id}`, formData, {
+    axios.post(`${API_URL}/users/avatar/${userProfile.value.user_id}`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
             // Adicione autenticação se necessário, ex: Authorization: Bearer <token>
