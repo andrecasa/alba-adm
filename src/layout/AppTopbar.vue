@@ -67,7 +67,7 @@ function onAvatarChange(event) {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    axios.post(`http://localhost:3000/avatar/${userProfile.value.user_id}`, formData, {
+    axios.post(`http://localhost:3000/users/avatar/${userProfile.value.user_id}`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
             // Adicione autenticação se necessário, ex: Authorization: Bearer <token>
