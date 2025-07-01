@@ -1,4 +1,5 @@
 <script setup>
+import { getTokenFromCookie } from '@/composables/useAuth';
 import { useLayout } from '@/layout/composables/layout';
 import axios from 'axios';
 import Button from 'primevue/button';
@@ -7,6 +8,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppConfigurator from './AppConfigurator.vue';
 const API_URL = import.meta.env.VITE_API_URL;
+const token = getTokenFromCookie();
 
 const router = useRouter();
 
@@ -36,12 +38,7 @@ function parseJwt(token) {
     }
 }
 
-// Helper to get token from cookie
-function getTokenFromCookie() {
-    const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
-    return match ? match[2] : null;
-}
-const token = getTokenFromCookie();
+
 
 onMounted(() => {
     if (token) {

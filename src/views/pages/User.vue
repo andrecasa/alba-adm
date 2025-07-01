@@ -1,4 +1,5 @@
 <script setup>
+import { getTokenFromCookie } from '@/composables/useAuth';
 import { FilterMatchMode } from '@primevue/core/api';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
@@ -18,16 +19,10 @@ const filters = ref({
 });
 const submitted = ref(false);
 const showPassword = ref(false);
-
-// Helper to get token from cookie
-function getTokenFromCookie() {
-    const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
-    return match ? match[2] : null;
-}
+const token = getTokenFromCookie();
 
 onMounted(async () => {
     try {
-        const token = getTokenFromCookie();
         const res = await axios.get(`${API_URL}/users/all/`, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -62,8 +57,6 @@ function saveUser() {
     ) {
         return; 
     }
-
-    const token = getTokenFromCookie();
 
     if (user.value.user_id) {
         axios.put(`${API_URL}/users/${user.value.user_id}`, user.value, {
@@ -108,7 +101,6 @@ function confirmDeleteUser(usr) {
 }
 
 function deleteUser() {
-    const token = getTokenFromCookie();
     axios.delete(`${API_URL}/users/${user.value.user_id}`, {
         headers: { Authorization: `Bearer ${token}` }
     })
@@ -137,7 +129,6 @@ function confirmDeleteSelected() {
 }
 
 function deleteSelectedUsers() {
-    const token = getTokenFromCookie();
     const idsToDelete = selectedUsers.value.map(u => u.user_id);
     Promise.all(
         idsToDelete.map(id =>
@@ -301,7 +292,7 @@ function deleteSelectedUsers() {
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteUsersDialog = false" />
-                <Button label="Yes" icon="pi pi-check" severity="danger" @click="deleteUser" />
+                <Button label="Yes" icon="pi pi-check" severity="danger" @click="deleteSelectedUsers" />
             </template>
         </Dialog>
     </div>
