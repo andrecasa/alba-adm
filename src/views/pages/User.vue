@@ -1,10 +1,9 @@
 <script setup>
+import api from '@/api/auth';
 import { getTokenFromCookie } from '@/composables/useAuth';
 import { FilterMatchMode } from '@primevue/core/api';
-import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
-const API_URL = import.meta.env.VITE_API_URL;
 
 const toast = useToast();
 const dt = ref();
@@ -23,11 +22,7 @@ const token = getTokenFromCookie();
 
 onMounted(async () => {
     try {
-        const res = await axios.get(`${API_URL}/users/list/`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const res = await api.get('/users/list/');
         return users.value = res.data;
     } catch (e) {
         users.value = [];
@@ -59,9 +54,7 @@ function saveUser() {
     }
 
     if (user.value.user_id) {
-        axios.put(`${API_URL}/users/${user.value.user_id}`, user.value, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
+        api.put(`/users/${user.value.user_id}`, user.value)
         .then(res => {
             const idx = users.value.findIndex(u => u.user_id === user.value.user_id);
             if (idx !== -1) users.value[idx] = res.data;
@@ -74,9 +67,7 @@ function saveUser() {
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
         });
     } else {
-        axios.post(`${API_URL}/users/`, user.value, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
+        api.post(`/users/`, user.value)
         .then(res => {
             users.value.push(res.data);
             toast.add({ severity: 'success', summary: 'Successful', detail: 'User Created', life: 3000 });
@@ -101,9 +92,7 @@ function confirmDeleteUser(usr) {
 }
 
 function deleteUser() {
-    axios.delete(`${API_URL}/users/${user.value.user_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    })
+    api.delete(`/users/${user.value.user_id}`)
     .then(() => {
         users.value = users.value.filter((val) => val.user_id !== user.value.user_id);
         deleteUserDialog.value = false;
@@ -132,9 +121,7 @@ function deleteSelectedUsers() {
     const idsToDelete = selectedUsers.value.map(u => u.user_id);
     Promise.all(
         idsToDelete.map(id =>
-            axios.delete(`${API_URL}/users/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
+            api.delete(`/users/${id}`)
         )
     )
     .then(() => {

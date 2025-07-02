@@ -1,7 +1,7 @@
 <script setup>
+import api from '@/api/auth';
 import { getTokenFromCookie } from '@/composables/useAuth';
 import { useLayout } from '@/layout/composables/layout';
-import axios from 'axios';
 import Button from 'primevue/button';
 import Popover from 'primevue/popover';
 import { onMounted, ref } from 'vue';
@@ -65,13 +65,7 @@ function onAvatarChange(event) {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    axios.post(`${API_URL}/users/avatar/${userProfile.value.user_id}`, formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-            // Adicione autenticação se necessário, ex: Authorization: Bearer <token>
-            Authorization: `Bearer ${token}`
-        }
-    })
+    api.post(`/users/avatar/${userProfile.value.user_id}`, formData)
     .then(response => {
         // Atualize o avatar do usuário conforme resposta do backend, se necessário
         // userProfile.value.avatar = response.data.avatarUrl;
