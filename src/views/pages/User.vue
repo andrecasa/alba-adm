@@ -23,7 +23,7 @@ const token = getTokenFromCookie();
 
 onMounted(async () => {
     try {
-        const res = await axios.get(`${API_URL}/users/all/`, {
+        const res = await axios.get(`${API_URL}/users/list/`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

@@ -3,12 +3,11 @@ import { getTokenFromCookie } from '@/composables/useAuth';
 import { useLayout } from '@/layout/composables/layout';
 import axios from 'axios';
 import Button from 'primevue/button';
-import OverlayPanel from 'primevue/overlaypanel';
+import Popover from 'primevue/popover';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import AppConfigurator from './AppConfigurator.vue';
 const API_URL = import.meta.env.VITE_API_URL;
-const token = getTokenFromCookie();
 
 const router = useRouter();
 
@@ -21,6 +20,8 @@ const userProfile = ref({
     user_email: '',
     user_image: '',
 });
+
+const token = getTokenFromCookie();
 
 function parseJwt(token) {
     try {
@@ -37,8 +38,6 @@ function parseJwt(token) {
         return {};
     }
 }
-
-
 
 onMounted(() => {
     if (token) {
@@ -164,13 +163,13 @@ function logout() {
                 </div>
             </div>
         </div>
-        <OverlayPanel ref="op">
+        <Popover ref="op">
             <div class="flex flex-col items-center gap-2 p-2 min-w-[200px]">
                 <label class="cursor-pointer flex flex-col items-center">
                     <img
                         :src="userProfile.avatar 
                             || (userProfile.user_image 
-                                ? 'http://localhost:3000/' + userProfile.user_image.replace(/^\/+/, '') 
+                                ? `${API_URL}/${userProfile.user_image.replace(/^\/+/, '')}` 
                                 : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userProfile.user_name)
                             )"
                         alt="Avatar"
@@ -194,6 +193,6 @@ function logout() {
                     @click="logout"
                 />
             </div>
-        </OverlayPanel>
+        </Popover>
     </div>
 </template>

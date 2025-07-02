@@ -4,6 +4,8 @@ import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const email = ref('');
 const password = ref('');
 const checked = ref(false);
@@ -15,12 +17,11 @@ const handleLogin = async () => {
     loading.value = true;
     error.value = '';
     try {
-        const response = await axios.post('http://localhost:3000/auth/login', {
+        const response = await axios.post(`${API_URL}/auth/login`, {
             user_email: email.value,
             user_password: password.value,
         });
-        // Store token in cookie (expires in 1 hour)
-        document.cookie = `token=${response.data.token}; path=/; max-age=3600; secure; samesite=strict`;
+        document.cookie = `token=${response.data.token}; path=/; max-age=3600; samesite=strict`;
         router.push('/');
     } catch (err) {
         error.value = err.response?.data?.message || 'Login failed';

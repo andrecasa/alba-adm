@@ -1,14 +1,11 @@
 import { getTokenFromCookie } from '@/composables/useAuth';
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
-const token = getTokenFromCookie();
 
-// Helper to check if JWT token is expired
 function isTokenExpired(token) {
     if (!token) return true;
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        // exp is in seconds, Date.now() is in ms
         return payload.exp * 1000 < Date.now();
     } catch (e) {
         return true;
@@ -22,6 +19,11 @@ const routes = [
         children: [
             {
                 path: '/',
+                name: 'home',
+                component: () => import('@/views/pages/Home.vue')
+            },
+            {
+                path: '/user',
                 name: 'user',
                 component: () => import('@/views/pages/User.vue')
             },
@@ -160,18 +162,16 @@ const router = createRouter({
 
 // Global navigation guard for protected routes
 router.beforeEach((to, from, next) => {
+    const token = getTokenFromCookie(); 
     const publicPages = ['login', 'accessDenied', 'error', 'landing', 'notfound'];
     const isPublic = publicPages.includes(to.name);
 
-    // All routes under '/' except public pages require auth
     if (!isPublic && to.matched.some(record => record.path.startsWith('/'))) {
         if (!token || isTokenExpired(token)) {
-            // Remove expired token from cookie
             document.cookie = 'token=; Max-Age=0; path=/;';
             return next({ name: 'login' });
         }
     }
     next();
 });
-
 export default router;
