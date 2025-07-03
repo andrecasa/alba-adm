@@ -1,6 +1,6 @@
 <script setup>
+import api from '@/api/auth';
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -17,14 +17,14 @@ const handleLogin = async () => {
     loading.value = true;
     error.value = '';
     try {
-        const response = await axios.post(`${API_URL}/auth/login`, {
+        const res = await api.post('/auth/login', {
             user_email: email.value,
             user_password: password.value,
         });
-        document.cookie = `token=${response.data.token}; path=/; max-age=3600; samesite=strict`;
+        document.cookie = `token=${res.data.token}; path=/; max-age=3600; samesite=strict`;
         router.push('/');
     } catch (err) {
-        error.value = err.response?.data?.message || 'Login failed';
+        error.value = err.res?.data?.message || 'Login failed';
     } finally {
         loading.value = false;
     }

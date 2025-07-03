@@ -1,9 +1,9 @@
 <script setup>
 import api from '@/api/auth';
-import { getTokenFromCookie } from '@/composables/useAuth';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
+
 
 const toast = useToast();
 const dt = ref();
@@ -18,12 +18,11 @@ const filters = ref({
 });
 const submitted = ref(false);
 const showPassword = ref(false);
-const token = getTokenFromCookie();
 
 onMounted(async () => {
     try {
         const res = await api.get('/users/list/');
-        return users.value = res.data;
+        users.value = res.data;
     } catch (e) {
         users.value = [];
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch users', life: 3000 });
@@ -41,7 +40,7 @@ function hideDialog() {
     submitted.value = false;
 }
 
-function saveUser() {
+async function saveUser() {
     submitted.value = true;
 
     if (
@@ -54,30 +53,28 @@ function saveUser() {
     }
 
     if (user.value.user_id) {
-        api.put(`/users/${user.value.user_id}`, user.value)
-        .then(res => {
+        try {
+            const res = await api.put(`/users/${user.value.user_id}`, user.value);
             const idx = users.value.findIndex(u => u.user_id === user.value.user_id);
             if (idx !== -1) users.value[idx] = res.data;
             toast.add({ severity: 'success', summary: 'Successful', detail: 'User Updated', life: 3000 });
             userDialog.value = false;
             user.value = {};
-        })
-        .catch((error) => {
-            const detail = error.response.data.error || 'Failed to update user';
+        } catch (error) {
+            const detail = error.response?.data?.error || 'Failed to update user';
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
-        });
+        }
     } else {
-        api.post(`/users/`, user.value)
-        .then(res => {
+        try {
+            const res = await api.post(`/users/`, user.value);
             users.value.push(res.data);
             toast.add({ severity: 'success', summary: 'Successful', detail: 'User Created', life: 3000 });
             userDialog.value = false;
             user.value = {};
-        })
-        .catch((error) => {
-            const detail = error.response.data.error || 'Failed to create user';
+        } catch (error) {
+            const detail = error.response?.data?.error || 'Failed to create user';
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
-        });
+        }
     }
 }
 
@@ -91,17 +88,16 @@ function confirmDeleteUser(usr) {
     deleteUserDialog.value = true;
 }
 
-function deleteUser() {
-    api.delete(`/users/${user.value.user_id}`)
-    .then(() => {
+async function deleteUser() {
+    try {
+        await api.delete(`/users/${user.value.user_id}`);
         users.value = users.value.filter((val) => val.user_id !== user.value.user_id);
         deleteUserDialog.value = false;
         user.value = {};
         toast.add({ severity: 'success', summary: 'Successful', detail: 'User Deleted', life: 3000 });
-    })
-    .catch(() => {
+    } catch (error) {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete user', life: 3000 });
-    });
+    }
 }
 
 function isValidEmail(email) {
@@ -117,22 +113,21 @@ function confirmDeleteSelected() {
     deleteUsersDialog.value = true;
 }
 
-function deleteSelectedUsers() {
+async function deleteSelectedUsers() {
     const idsToDelete = selectedUsers.value.map(u => u.user_id);
-    Promise.all(
-        idsToDelete.map(id =>
-            api.delete(`/users/${id}`)
-        )
-    )
-    .then(() => {
+    try {
+        await Promise.all(
+            idsToDelete.map(id =>
+                api.delete(`/users/${id}`)
+            )
+        );
         users.value = users.value.filter((val) => !idsToDelete.includes(val.user_id));
         deleteUsersDialog.value = false;
         selectedUsers.value = [];
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Users Deleted', life: 3000 });
-    })
-    .catch(() => {
+    } catch {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete users', life: 3000 });
-    });
+    }
 }
 
 </script>
